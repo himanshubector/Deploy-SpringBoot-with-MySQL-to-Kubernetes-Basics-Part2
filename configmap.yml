@@ -1,0 +1,11 @@
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-configmap
+data:
+  mysql-db-name: blogging_application_db
+  mysql-host: himsdb-mysql.default.svc.cluster.local
+  mysql-port: "3306"
+
+

@@ -1,0 +1,92 @@
+
+apiVersion: apps/v1  # Describes the version of your api server
+kind: Deployment    # Kubernetes resource kind we are creating / We are telling to Kubernetes here that this is the type of object that we are creating
+
+
+metadata:
+  name: article-app-deployment  # Name of the Deployment object
+
+
+spec:
+  selector:
+    matchLabels:
+      app: article-app  # The selector labels and below template labels name should be same in deployment and service
+  replicas: 2              # Number of replicas that will be created for this deployment / We are telling to K8s to create 2 pods of my application in K8s cluster
+
+
+  template:
+    metadata:
+      labels:
+        app: article-app
+    spec:
+      containers:
+        - name: article-app
+          image: himsb/article-service-image:latest   # Image that will be used to containers in the k8s cluster
+          imagePullPolicy: IfNotPresent            # Here, first it will check for the docker image in local and if not present, it will search in the Docker hub
+          ports:
+            - containerPort: 8080            # The port that the container is running on in the k8s cluster
+
+          env:
+            - name: MYSQL_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secrets
+                  key: mysql-username
+
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secrets
+                  key: mysql-password
+
+            - name: MYSQL_DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: mysql-configmap
+                  key: mysql-db-name
+
+
+            - name: MYSQL_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: mysql-configmap
+                  key: mysql-host
+
+            - name: MYSQL_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: mysql-configmap
+                  key: mysql-port
+
+
+      imagePullSecrets:
+        - name: regcred
+
+
+# Note: We can give any name to this k8s-deployment.yaml file
+
+
+---
+
+
+
+apiVersion: v1 # Kubernetes API version
+kind: Service # Kubernetes resource kind we are creating
+
+
+metadata: # Metadata of the resource kind we are creating
+  name: article-app-service    # # Name of the Service object
+
+
+spec:
+  selector:
+    app: article-app      # The selector name here should be same as that of deployment selector
+  ports:
+    - protocol: "TCP"
+      port: 8080           # The port that the service is running on in the k8s cluster
+      targetPort: 8080     # The port exposed by the service
+  type: NodePort           # type of the service. / This means we can access our api with the help of Node IP and Node port
+
+#  Different Service types are there - ClusterIP, LoadBalancer, NodePort
+
+
